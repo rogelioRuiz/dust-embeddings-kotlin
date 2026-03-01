@@ -11,8 +11,10 @@ buildscript {
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'maven-publish'
-apply plugin: 'signing'
+
+plugins {
+    id 'net.thebugmc.gradle.sonatype-central-portal-publisher' version '1.2.4'
+}
 
 group = 'io.t6x.dust'
 version = file('VERSION').text.trim()
@@ -47,69 +49,44 @@ allprojects {
 }
 
 dependencies {
-    api project(':dust-llm-kotlin')
-    api project(':dust-onnx-kotlin')
-    implementation project(':dust-core-kotlin')
+    api 'io.t6x.dust:dust-llm:0.1.0'
+    api 'io.t6x.dust:dust-onnx:0.1.0'
+    implementation 'io.t6x.dust:dust-core:0.1.0'
     implementation 'com.google.code.gson:gson:2.11.0'
 
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0'
 }
 
-afterEvaluate {
-    def releaseComponent = components.findByName('release')
-    if (releaseComponent == null) {
-        return
-    }
-    publishing {
-        publications {
-            release(MavenPublication) {
-                from releaseComponent
-                groupId = project.group
-                artifactId = 'dust-embeddings'
-                version = project.version
+centralPortal {
+    username = findProperty('centralPortal.username') ?: ''
+    password = findProperty('centralPortal.password') ?: ''
 
-                pom {
-                    name = 'dust-embeddings-kotlin'
-                    description = 'Standalone tokenizers and embedding runtime primitives for Dust'
-                    url = 'https://github.com/rogelioRuiz/dust-embeddings-kotlin'
-                    licenses {
-                        license {
-                            name = 'The Apache License, Version 2.0'
-                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                        }
-                    }
-                    developers {
-                        developer {
-                            id = 't6x'
-                            name = 'T6X'
-                            email = 'dev@t6x.io'
-                        }
-                    }
-                    scm {
-                        connection = 'scm:git:git://github.com/rogelioRuiz/dust-embeddings-kotlin.git'
-                        developerConnection = 'scm:git:ssh://github.com/rogelioRuiz/dust-embeddings-kotlin.git'
-                        url = 'https://github.com/rogelioRuiz/dust-embeddings-kotlin'
-                    }
-                }
+    pom {
+        name = 'dust-embeddings'
+        description = 'Standalone tokenizers and embedding runtime primitives for Dust'
+        url = 'https://github.com/rogelioRuiz/dust-embeddings-kotlin'
+        licenses {
+            license {
+                name = 'The Apache License, Version 2.0'
+                url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
             }
         }
-
-        repositories {
-            maven {
-                name = 'sonatype'
-                url = version.toString().endsWith('SNAPSHOT')
-                    ? 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
-                    : 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
-                credentials {
-                    username = findProperty('ossrhUsername') ?: ''
-                    password = findProperty('ossrhPassword') ?: ''
-                }
+        developers {
+            developer {
+                id = 't6x'
+                name = 'T6X'
+                email = 'dev@t6x.io'
             }
         }
+        scm {
+            connection = 'scm:git:git://github.com/rogelioRuiz/dust-embeddings-kotlin.git'
+            developerConnection = 'scm:git:ssh://github.com/rogelioRuiz/dust-embeddings-kotlin.git'
+            url = 'https://github.com/rogelioRuiz/dust-embeddings-kotlin'
+        }
     }
+}
 
-    signing {
-        sign publishing.publications
-    }
+signing {
+    sign publishing.publications
 }
